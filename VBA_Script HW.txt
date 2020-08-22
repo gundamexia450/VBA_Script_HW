@@ -1,0 +1,142 @@
+Sub Button2_Click()
+
+Call StockData
+
+End Sub
+
+Sub StockData()
+
+    Dim ws As Worksheet
+    Dim LastRow As Long
+    Dim i As Long
+    Dim TotalStock As Double
+    Dim YearlyChange As Double
+    Dim PercentChange As Double
+    Dim Start As Long
+    Dim J As Integer
+    
+    
+For Each ws In Worksheets
+    
+    If ws.Name <> "Run" Then
+    
+        Start = 2
+    
+        J = 0
+    
+        TotalStock = 0
+        
+        LastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+    
+    
+        ws.Range("I1").Value = "Ticker"
+        ws.Range("J1").Value = "Yearly Change"
+        ws.Range("K1").Value = "Percent Change"
+        ws.Range("L1").Value = "Total Stock Volume"
+        
+        For i = 2 To LastRow
+    
+            If ws.Cells(i + 1, 1).Value <> ws.Cells(i, 1).Value Then
+            
+                TotalStock = TotalStock + ws.Cells(i, 7).Value
+            
+                If TotalStock = 0 Then
+            
+                    ws.Range("I" & 2 + J).Value = ws.Cells(i, 1).Value
+                    ws.Range("J" & 2 + J).Value = 0
+                    ws.Range("K" & 2 + J).Value = "%" & 0
+                    ws.Range("L" & 2 + J).Value = 0
+            
+                Else
+                
+                    If ws.Cells(Start, 3) = 0 Then
+                    
+                        For Value = Start To i
+                    
+                            If ws.Cells(Value, 3).Value <> 0 Then
+                            
+                                Start = Value
+                            
+                                Exit For
+                        
+                            End If
+                    
+                        Next Value
+                    
+                    End If
+                
+                    YearlyChange = ws.Cells(i, 6) - ws.Cells(Start, 3)
+                
+                    PercentChange = Round((YearlyChange / ws.Cells(Start, 3)) * 100, 2)
+                
+                    Start = Start + 1
+                
+                    ws.Range("I" & 2 + J).Value = ws.Cells(i, 1).Value
+                    ws.Range("J" & 2 + J).Value = Round(YearlyChange, 2)
+                    ws.Range("K" & 2 + J).Value = "%" & PercentChange
+                    ws.Range("L" & 2 + J).Value = TotalStock
+                
+                    Select Case YearlyChange
+                        Case Is > 0
+                            ws.Range("J" & 2 + J).Interior.ColorIndex = 4
+                        
+                        Case Is < 0
+                            ws.Range("J" & 2 + J).Interior.ColorIndex = 3
+                    
+                        Case Else
+                            ws.Range("J" & 2 + J).Interior.ColorIndex = 0
+                    
+                    End Select
+                
+                End If
+            
+                J = J + 1
+            
+                TotalStock = 0
+                
+                YearlyChange = 0
+        
+            Else
+                TotalStock = TotalStock + ws.Cells(i, 7).Value
+            
+            End If
+    
+        Next i
+    
+    'Challenege
+    
+    Dim k As Long
+    Dim TickerRow As Long
+    
+    ws.Activate
+    
+    Range("O2").Value = "Greatest % Increase"
+    Range("O3").Value = "Greatest % Decrease"
+    Range("O4").Value = "Greatest Total Volume"
+    Range("P1").Value = "Ticker"
+    Range("Q1").Value = "Value"
+    
+    TickerRow = ws.Cells(Rows.Count, 9).End(xlUp).Row
+    
+    Range("Q2").Value = WorksheetFunction.Max(Range("K2:K" & TickerRow))
+    Range("Q2").NumberFormat = "0.00%"
+    
+    Range("Q3").Value = WorksheetFunction.Min(Range("K2:K" & TickerRow))
+    Range("Q3").NumberFormat = "0.00%"
+    
+    Range("Q4").Value = WorksheetFunction.Max(Range("L2:L" & TickerRow))
+    Range("Q4").NumberFormat = "0"
+    
+    Range("P2").Value = WorksheetFunction.Index(Range("I2:I" & TickerRow), WorksheetFunction.Match(Range("Q2").Value, Range("K2:K" & TickerRow), 0), 0)
+    Range("P3").Value = WorksheetFunction.Index(Range("I2:I" & TickerRow), WorksheetFunction.Match(Range("Q3").Value, Range("K2:K" & TickerRow), 0), 0)
+    Range("P4").Value = WorksheetFunction.Index(Range("I2:I" & TickerRow), WorksheetFunction.Match(Range("Q4").Value, Range("L2:L" & TickerRow), 0), 0)
+    
+    End If
+        
+    ws.Range("I:Q").Select
+    ws.Range("I:Q").Columns.AutoFit
+        
+Next ws
+
+
+End Sub
